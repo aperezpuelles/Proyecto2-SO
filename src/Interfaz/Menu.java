@@ -5,18 +5,38 @@
  */
 package Interfaz;
 
+import javax.swing.JOptionPane;
+import proyecto2.so.Bloque;
+import proyecto2.so.Nodo;
+import proyecto2.so.PanelDisco;
+import proyecto2.so.SD;
+
 /**
  *
  * @author Ignacio
  */
 public class Menu extends javax.swing.JFrame {
+    private SD sd;
+    private PanelDisco panelDisco;
 
     /**
      * Creates new form Menu
      */
     public Menu() {
         initComponents();
+        iniciarSimulacion();
     }
+
+    private void iniciarSimulacion() {
+        sd = new SD(40, 40);
+        panelDisco = new PanelDisco(sd);
+
+        panelBloques.setLayout(new java.awt.BorderLayout());
+        panelBloques.add(panelDisco);
+        panelBloques.revalidate();
+        panelBloques.repaint();
+    }                                    
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -27,18 +47,23 @@ public class Menu extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        panelBloques = new javax.swing.JPanel();
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        javax.swing.GroupLayout panelBloquesLayout = new javax.swing.GroupLayout(panelBloques);
+        panelBloques.setLayout(panelBloquesLayout);
+        panelBloquesLayout.setHorizontalGroup(
+            panelBloquesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+        panelBloquesLayout.setVerticalGroup(
+            panelBloquesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
         );
+
+        getContentPane().add(panelBloques, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 30, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -79,5 +104,6 @@ public class Menu extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel panelBloques;
     // End of variables declaration//GEN-END:variables
 }
