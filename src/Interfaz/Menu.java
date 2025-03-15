@@ -5,10 +5,12 @@
  */
 package Interfaz;
 
+import java.awt.Color;
 import javax.swing.JOptionPane;
+import proyecto2.so.Archivo;
 import proyecto2.so.Bloque;
+import proyecto2.so.Lista;
 import proyecto2.so.Nodo;
-import proyecto2.so.PanelDisco;
 import proyecto2.so.SD;
 
 /**
@@ -18,6 +20,7 @@ import proyecto2.so.SD;
 public class Menu extends javax.swing.JFrame {
     private SD sd;
     private PanelDisco panelDisco;
+    private Lista<Archivo> archivos;
 
     /**
      * Creates new form Menu
@@ -28,6 +31,7 @@ public class Menu extends javax.swing.JFrame {
     }
 
     private void iniciarSimulacion() {
+        archivos = new Lista<>();
         sd = new SD(40, 40);
         panelDisco = new PanelDisco(sd);
 
@@ -35,7 +39,37 @@ public class Menu extends javax.swing.JFrame {
         panelBloques.add(panelDisco);
         panelBloques.revalidate();
         panelBloques.repaint();
-    }                                    
+    }
+    
+    private void mostrarDialogoCrearArchivo() {
+        CrearArchivoDialog dialog = new CrearArchivoDialog(this);
+        dialog.setVisible(true);
+
+        if (dialog.isAceptado()) {
+            String nombre = dialog.getNombreArchivo();
+            double tamano = dialog.getTamanoArchivo();
+            Color color = dialog.getColorArchivo();
+
+            if (nombre.isEmpty() || tamano <= 0) {
+                JOptionPane.showMessageDialog(this, "Datos inválidos. Intenta de nuevo.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (sd.getBloquesrestantes() < Math.ceil(tamano)) {
+                JOptionPane.showMessageDialog(this, "No hay suficientes bloques disponibles.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Archivo nuevoArchivo = new Archivo(nombre, tamano, color);
+            archivos.add(nuevoArchivo);
+            sd.setBloquesrestantes((int) (sd.getBloquesrestantes() - tamano));
+
+            sd.asignarBloques(nuevoArchivo);
+            panelDisco.actualizarVista();
+
+            JOptionPane.showMessageDialog(this, "Archivo creado:\nNombre: " + nombre + "\nTamaño: " + tamano + " bloques\nColor: " + color.toString());
+            }
+        }
 
 
     /**
@@ -48,25 +82,39 @@ public class Menu extends javax.swing.JFrame {
     private void initComponents() {
 
         panelBloques = new javax.swing.JPanel();
+        btnCrearArchivo = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setPreferredSize(new java.awt.Dimension(800, 500));
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         javax.swing.GroupLayout panelBloquesLayout = new javax.swing.GroupLayout(panelBloques);
         panelBloques.setLayout(panelBloquesLayout);
         panelBloquesLayout.setHorizontalGroup(
             panelBloquesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
+            .addGap(0, 340, Short.MAX_VALUE)
         );
         panelBloquesLayout.setVerticalGroup(
             panelBloquesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
+            .addGap(0, 150, Short.MAX_VALUE)
         );
 
-        getContentPane().add(panelBloques, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 30, -1, -1));
+        getContentPane().add(panelBloques, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 320, 340, 150));
+
+        btnCrearArchivo.setText("Crear Archivo");
+        btnCrearArchivo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCrearArchivoActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnCrearArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 230, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnCrearArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearArchivoActionPerformed
+        mostrarDialogoCrearArchivo();
+    }//GEN-LAST:event_btnCrearArchivoActionPerformed
 
     /**
      * @param args the command line arguments
@@ -104,6 +152,7 @@ public class Menu extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCrearArchivo;
     private javax.swing.JPanel panelBloques;
     // End of variables declaration//GEN-END:variables
 }

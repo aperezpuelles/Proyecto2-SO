@@ -5,24 +5,51 @@
  */
 package proyecto2.so;
 
+import java.awt.Color;
+
 /**
  *
  * @author Ignacio
  */
 public class SD {
     private int bloquesmax;
-    private int bloquesrestantes;
+    private double bloquesrestantes;
     private Lista<Bloque> bloques;
 
-    public SD(int bloquesmax, int bloquesrestantes) {
+    public SD(int bloquesmax, double bloquesrestantes) {
         this.bloquesmax = bloquesmax;
         this.bloquesrestantes = bloquesrestantes;
         this.bloques = new Lista<>();
         
-        for (int i = 1; i < bloquesmax; i++) {
-            Bloque nuevo = new Bloque("");
+        for (int i = bloquesmax; i >= 0; i--) {
+            Bloque nuevo = new Bloque("", i);
             bloques.add(nuevo);
         }        
+    }
+    
+    public void asignarBloques(Archivo archivo) {
+        double tamano = archivo.getBloquesAsignados();
+        Color color = archivo.getColor();
+
+        Nodo<Bloque> actual = bloques.getHead();
+        while (actual != null && tamano > 0) {
+            Bloque bloque = actual.getData();
+
+            if (!bloque.isOcupado()) {
+                if (tamano >= 1) {
+                    bloque.setColor(color);
+                } else {
+                    bloque.setColor(new Color(
+                        (color.getRed() + 255) / 2,
+                        (color.getGreen() + 255) / 2,
+                        (color.getBlue() + 255) / 2
+                    ));
+                }
+                bloque.setOcupado(true);
+                tamano--; 
+            }
+            actual = actual.getNext();
+        }
     }
 
     public int getBloquesmax() {
@@ -33,11 +60,11 @@ public class SD {
         this.bloquesmax = bloquesmax;
     }
 
-    public int getBloquesrestantes() {
+    public double getBloquesrestantes() {
         return bloquesrestantes;
     }
 
-    public void setBloquesrestantes(int bloquesrestantes) {
+    public void setBloquesrestantes(double bloquesrestantes) {
         this.bloquesrestantes = bloquesrestantes;
     }
 

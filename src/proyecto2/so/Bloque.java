@@ -5,25 +5,31 @@
  */
 package proyecto2.so;
 
+import java.awt.Color;
+
 /**
  *
  * @author Ignacio
  */
 public class Bloque {
-    private String name;
+    private String nombre;
+    private int numero;
     private boolean ocupado;
+    private Color color;
 
-    public Bloque(String name) {
-        this.name = name;
+    public Bloque(String nombre, int numero) {
+        this.nombre = nombre;
+        this.numero = numero;
         this.ocupado = false;
+        this.color = Color.WHITE;
     }
 
-    public String getName() {
-        return name;
+    public int getNumero() {
+        return numero;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNumero(int numero) {
+        this.numero = numero;
     }
 
     public boolean isOcupado() {
@@ -34,4 +40,19 @@ public class Bloque {
         this.ocupado = ocupado;
     }
 
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
 }
