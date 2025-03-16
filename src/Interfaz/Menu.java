@@ -12,6 +12,7 @@ import proyecto2.so.Bloque;
 import proyecto2.so.Lista;
 import proyecto2.so.Nodo;
 import proyecto2.so.SD;
+import proyecto2.so.Usuario;
 
 /**
  *
@@ -21,6 +22,7 @@ public class Menu extends javax.swing.JFrame {
     private SD sd;
     private PanelDisco panelDisco;
     private Lista<Archivo> archivos;
+    private Usuario user;
 
     /**
      * Creates new form Menu
@@ -34,6 +36,7 @@ public class Menu extends javax.swing.JFrame {
         archivos = new Lista<>();
         sd = new SD(40, 40);
         panelDisco = new PanelDisco(sd);
+        user = new Usuario(false);
 
         panelBloques.setLayout(new java.awt.BorderLayout());
         panelBloques.add(panelDisco);
@@ -70,6 +73,11 @@ public class Menu extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Archivo creado:\nNombre: " + nombre + "\nTamaño: " + tamano + " bloques\nColor: " + color.toString());
             }
         }
+    
+    private void mostrarAccesoDenegado(){
+        FrameAccesoDenegado deneg = new FrameAccesoDenegado(this);
+        deneg.setVisible(true);
+    }
 
 
     /**
@@ -83,6 +91,11 @@ public class Menu extends javax.swing.JFrame {
 
         panelBloques = new javax.swing.JPanel();
         btnCrearArchivo = new javax.swing.JButton();
+        jToggleButton1 = new javax.swing.JToggleButton();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(800, 500));
@@ -92,14 +105,14 @@ public class Menu extends javax.swing.JFrame {
         panelBloques.setLayout(panelBloquesLayout);
         panelBloquesLayout.setHorizontalGroup(
             panelBloquesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 340, Short.MAX_VALUE)
+            .addGap(0, 460, Short.MAX_VALUE)
         );
         panelBloquesLayout.setVerticalGroup(
             panelBloquesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 150, Short.MAX_VALUE)
+            .addGap(0, 180, Short.MAX_VALUE)
         );
 
-        getContentPane().add(panelBloques, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 320, 340, 150));
+        getContentPane().add(panelBloques, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 230, 460, 180));
 
         btnCrearArchivo.setText("Crear Archivo");
         btnCrearArchivo.addActionListener(new java.awt.event.ActionListener() {
@@ -107,14 +120,48 @@ public class Menu extends javax.swing.JFrame {
                 btnCrearArchivoActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrearArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 230, -1, -1));
+        getContentPane().add(btnCrearArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 180, -1, -1));
+
+        jToggleButton1.setText("Rol");
+        jToggleButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButton1ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jToggleButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 130, -1, -1));
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 2, 24)); // NOI18N
+        jLabel1.setText("Simulador Virtual");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 20, 190, -1));
+
+        jLabel2.setText("Cambiar de Rol:");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, -1, -1));
+
+        jLabel3.setText("Activado: Administrador");
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 120, -1, -1));
+
+        jLabel4.setText("Desactivado: Usuario");
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 140, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCrearArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearArchivoActionPerformed
-        mostrarDialogoCrearArchivo();
+        if (user.isAdmin()){
+            mostrarDialogoCrearArchivo();
+        }else{
+            mostrarAccesoDenegado();
+        }
+        
     }//GEN-LAST:event_btnCrearArchivoActionPerformed
+
+    private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
+        if (user.isAdmin()){
+            user.setAdmin(false);
+        }else{
+            user.setAdmin(true);
+        }
+    }//GEN-LAST:event_jToggleButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -153,6 +200,11 @@ public class Menu extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCrearArchivo;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JToggleButton jToggleButton1;
     private javax.swing.JPanel panelBloques;
     // End of variables declaration//GEN-END:variables
 }
