@@ -31,6 +31,19 @@ public class Lista<T> {
         head = newNode;
         size++;
     }
+    
+    public void addLast(T dato) {
+        Nodo<T> nuevoNodo = new Nodo<>(dato);
+        if (head == null) {
+            head = nuevoNodo;
+        } else {
+            Nodo<T> actual = head;
+            while (actual.getNext() != null) {
+                actual = actual.getNext();
+            }
+            actual.setNext(nuevoNodo);
+        }
+    }
 
     public T get(int index) {
         Nodo<T> current = head;
@@ -59,6 +72,14 @@ public class Lista<T> {
             }
             count++;
             current = current.getNext();
+        }
+    }
+    
+    public void print() {
+        Nodo<T> actual = head;
+        while (actual != null) {
+            System.out.println(actual.getData()); 
+            actual = actual.getNext(); 
         }
     }
 }

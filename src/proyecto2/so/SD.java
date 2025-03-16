@@ -30,6 +30,7 @@ public class SD {
     public void asignarBloques(Archivo archivo) {
         double tamano = archivo.getBloquesAsignados();
         Color color = archivo.getColor();
+        Lista bloquess = archivo.getBloques();
 
         Nodo<Bloque> actual = bloques.getHead();
         while (actual != null && tamano > 0) {
@@ -38,6 +39,7 @@ public class SD {
             if (!bloque.isOcupado()) {
                 if (tamano >= 1) {
                     bloque.setColor(color);
+                    bloquess.addLast(bloque);
                 } else {
                     bloque.setColor(new Color(
                         (color.getRed() + 255) / 2,
@@ -50,6 +52,21 @@ public class SD {
             }
             actual = actual.getNext();
         }
+        archivo.setBloques(bloquess);
+        archivo.setPrimerBloque((Bloque) bloquess.getHead().getData());
+        archivo.printBloques();
+        System.out.println(archivo.getPrimerBloque().getNumero());
+    }
+    
+    public Bloque obtenerBloquePorNumero(int numero) {
+        Nodo<Bloque> actual = bloques.getHead();
+        while (actual != null) {
+            if (actual.getData().getNumero() == numero) {
+                return actual.getData();
+            }
+            actual = actual.getNext();
+        }
+        return null; 
     }
 
     public int getBloquesmax() {

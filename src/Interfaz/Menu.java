@@ -5,7 +5,13 @@
  */
 package Interfaz;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import java.awt.Color;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileReader;
+import java.io.BufferedReader;
 import javax.swing.JOptionPane;
 import proyecto2.so.Archivo;
 import proyecto2.so.Bloque;
@@ -28,6 +34,7 @@ public class Menu extends javax.swing.JFrame {
     public Menu() {
         initComponents();
         iniciarSimulacion();
+        cargarDesdeJSON();
     }
 
     private void iniciarSimulacion() {
@@ -66,12 +73,118 @@ public class Menu extends javax.swing.JFrame {
 
             sd.asignarBloques(nuevoArchivo);
             panelDisco.actualizarVista();
+            guardarEnJSON();
 
-            JOptionPane.showMessageDialog(this, "Archivo creado:\nNombre: " + nombre + "\nTamaño: " + tamano + " bloques\nColor: " + color.toString());
+            JOptionPane.showMessageDialog(this, "Archivo creado:\nNombre: " + nombre + "\nTamaño: " + tamano + " bloques\nColor: " + obtenerNombreColor(color));
             }
         }
+    
+    private void guardarEnJSON() {
+        JSONArray jsonArray = new JSONArray();
+        Nodo<Archivo> actualArchivo = archivos.getHead();
 
+        while (actualArchivo != null) {
+            Archivo archivo = actualArchivo.getData();
+            JSONObject jsonArchivo = new JSONObject();
+            jsonArchivo.put("nombre", archivo.getNombre());
+            jsonArchivo.put("bloquesAsignados", archivo.getBloquesAsignados());
+            jsonArchivo.put("color", obtenerNombreColor(archivo.getColor()));
 
+            JSONArray jsonBloques = new JSONArray();
+            Nodo<Bloque> actualBloque = archivo.getBloques().getHead();
+            while (actualBloque != null) {
+                jsonBloques.put(actualBloque.getData().getNumero());
+                actualBloque = actualBloque.getNext();
+            }
+            jsonArchivo.put("bloques", jsonBloques);
+
+            if (archivo.getBloques().getHead() != null) {
+                jsonArchivo.put("primerBloque", archivo.getBloques().getHead().getData().getNumero());
+            } else {
+                jsonArchivo.put("primerBloque", -1);  
+            }
+
+            jsonArray.put(jsonArchivo);
+            actualArchivo = actualArchivo.getNext();
+        }
+
+        try (FileWriter file = new FileWriter("archivos.json")) {
+            file.write(jsonArray.toString(4)); 
+            file.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void cargarDesdeJSON() {
+        File archivoJson = new File("archivos.json");
+        if (!archivoJson.exists()) return;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(archivoJson))) {
+            StringBuilder jsonStr = new StringBuilder();
+            String linea;
+
+            while ((linea = reader.readLine()) != null) {
+                jsonStr.append(linea);
+            }
+
+            JSONArray jsonArray = new JSONArray(jsonStr.toString());
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonArchivo = jsonArray.getJSONObject(i);
+                String nombre = jsonArchivo.getString("nombre");
+                double bloquesAsignados = jsonArchivo.getDouble("bloquesAsignados");
+                Color color = obtenerColorDesdeNombre(jsonArchivo.getString("color"));
+
+                Archivo archivo = new Archivo(nombre, bloquesAsignados, color);
+
+                JSONArray jsonBloques = jsonArchivo.getJSONArray("bloques");
+                for (int j = 0; j < jsonBloques.length(); j++) {
+                    int numBloque = jsonBloques.getInt(j);
+                    Bloque bloque = sd.obtenerBloquePorNumero(numBloque);
+                    archivo.getBloques().add(bloque);
+                    bloque.setOcupado(true);
+                    bloque.setColor(color);
+                }
+
+                int primerBloqueNum = jsonArchivo.getInt("primerBloque");
+                if (primerBloqueNum != -1) {
+                    archivo.setPrimerBloque(sd.obtenerBloquePorNumero(primerBloqueNum));
+                }
+
+                archivos.add(archivo);
+            }
+            panelDisco.actualizarVista();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private String obtenerNombreColor(Color color) {
+        if (color.equals(Color.RED)) return "Rojo";
+        if (color.equals(Color.GREEN)) return "Verde";
+        if (color.equals(Color.BLUE)) return "Azul";
+        if (color.equals(Color.YELLOW)) return "Amarillo";
+        if (color.equals(new Color(255, 165, 0))) return "Naranja"; 
+        if (color.equals(new Color(128, 0, 128))) return "Morado"; 
+        return "Personalizado (RGB: " + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + ")";
+    }
+
+    private Color obtenerColorDesdeNombre(String nombre) {
+        switch (nombre) {
+            case "Rojo": return Color.RED;
+            case "Verde": return Color.GREEN;
+            case "Azul": return Color.BLUE;
+            case "Amarillo": return Color.YELLOW;
+            case "Naranja": return new Color(255, 165, 0);
+            case "Morado": return new Color(128, 0, 128);
+            default:
+                String[] partes = nombre.replace("Personalizado (", "").replace(")", "").split(",");
+                return new Color(Integer.parseInt(partes[0]), Integer.parseInt(partes[1]), Integer.parseInt(partes[2]));
+        }
+    
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -83,6 +196,7 @@ public class Menu extends javax.swing.JFrame {
 
         panelBloques = new javax.swing.JPanel();
         btnCrearArchivo = new javax.swing.JButton();
+        btnModificarArchivo = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(800, 500));
@@ -109,12 +223,24 @@ public class Menu extends javax.swing.JFrame {
         });
         getContentPane().add(btnCrearArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 230, -1, -1));
 
+        btnModificarArchivo.setText("Modificar Archivo");
+        btnModificarArchivo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnModificarArchivoActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnModificarArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 230, -1, -1));
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCrearArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearArchivoActionPerformed
         mostrarDialogoCrearArchivo();
     }//GEN-LAST:event_btnCrearArchivoActionPerformed
+
+    private void btnModificarArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarArchivoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnModificarArchivoActionPerformed
 
     /**
      * @param args the command line arguments
@@ -153,6 +279,7 @@ public class Menu extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCrearArchivo;
+    private javax.swing.JButton btnModificarArchivo;
     private javax.swing.JPanel panelBloques;
     // End of variables declaration//GEN-END:variables
 }

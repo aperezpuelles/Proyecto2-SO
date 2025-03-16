@@ -29,8 +29,8 @@ public class CrearArchivoDialog extends JDialog{
         tablaColores.put("Verde", Color.GREEN);
         tablaColores.put("Azul", Color.BLUE);
         tablaColores.put("Amarillo", Color.YELLOW);
-        tablaColores.put("Naranja", new Color(255, 165, 0)); // Naranja
-        tablaColores.put("Morado", new Color(128, 0, 128)); // Morado
+        tablaColores.put("Naranja", new Color(255, 165, 0));
+        tablaColores.put("Morado", new Color(128, 0, 128)); 
     }
 
     public CrearArchivoDialog(JFrame parent) {
@@ -64,7 +64,7 @@ public class CrearArchivoDialog extends JDialog{
                     tamanoArchivo = -1; 
                 }
                 String colorSeleccionado = (String) comboColor.getSelectedItem();
-                colorArchivo = tablaColores.get(colorSeleccionado); // Obtener Color desde la tabla hash
+                colorArchivo = tablaColores.get(colorSeleccionado);
 
                 if (nombreArchivo.isEmpty() || tamanoArchivo <= 0) {
                     JOptionPane.showMessageDialog(CrearArchivoDialog.this, "Datos inválidos. Intenta de nuevo.", "Error", JOptionPane.ERROR_MESSAGE);

@@ -14,14 +14,23 @@ import java.awt.Color;
 public class Archivo {
     private String nombre;
     private double bloquesAsignados;
-    private int primerBloque;
+    private Bloque primerBloque;
     private Color color;
+    private Lista<Bloque> bloques;
 
     public Archivo(String nombre, double bloquesAsignados, Color color) {
         this.nombre = nombre;
         this.bloquesAsignados = bloquesAsignados;
-        this.primerBloque = 0;
         this.color = color;
+        this.bloques = new Lista<>();
+    }
+    
+    public void printBloques(){
+        Nodo<Bloque> actual = bloques.getHead();
+        while (actual != null) {
+            System.out.println(actual.getData().getNumero()); 
+            actual = actual.getNext(); 
+        }
     }
 
     public String getNombre() {
@@ -40,11 +49,11 @@ public class Archivo {
         this.bloquesAsignados = bloquesAsignados;
     }
 
-    public int getPrimerBloque() {
+    public Bloque getPrimerBloque() {
         return primerBloque;
     }
 
-    public void setPrimerBloque(int primerBloque) {
+    public void setPrimerBloque(Bloque primerBloque) {
         this.primerBloque = primerBloque;
     }
 
@@ -54,6 +63,14 @@ public class Archivo {
 
     public void setColor(Color color) {
         this.color = color;
+    }
+
+    public Lista<Bloque> getBloques() {
+        return bloques;
+    }
+
+    public void setBloques(Lista<Bloque> bloques) {
+        this.bloques = bloques;
     }
     
     
