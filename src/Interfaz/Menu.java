@@ -79,6 +79,50 @@ public class Menu extends javax.swing.JFrame {
             }
         }
     
+    private void mostrarDialogoModificarArchivo() {
+        if (archivos.getHead() == null) { 
+            JOptionPane.showMessageDialog(this, "No hay archivos creados.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String[] nombresArchivos = obtenerListaNombresArchivos();
+        String seleccionado = (String) JOptionPane.showInputDialog(
+                this,
+                "Selecciona un archivo para modificar:",
+                "Modificar Archivo",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                nombresArchivos,
+                nombresArchivos[0]
+        );
+
+        if (seleccionado == null) return;
+
+        Archivo archivoAModificar = buscarArchivoPorNombre(seleccionado);
+        if (archivoAModificar == null) {
+            JOptionPane.showMessageDialog(this, "No se encontró el archivo.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        ModificarArchivoDialog dialog = new ModificarArchivoDialog(this, archivoAModificar.getNombre());
+        dialog.setVisible(true);
+
+        if (dialog.isAceptado()) {
+            String nuevoNombre = dialog.getNombreArchivo();
+
+            if (nuevoNombre.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Datos inválidos. Intenta de nuevo.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            archivoAModificar.setNombre(nuevoNombre);
+            System.out.println(archivos.getHead().getData().getNombre()); 
+            guardarEnJSON(); 
+
+            JOptionPane.showMessageDialog(this, "Archivo modificado con éxito.");
+        }
+    }
+    
     private void guardarEnJSON() {
         JSONArray jsonArray = new JSONArray();
         Nodo<Archivo> actualArchivo = archivos.getHead();
@@ -185,6 +229,32 @@ public class Menu extends javax.swing.JFrame {
         }
     
     }
+    
+    private String[] obtenerListaNombresArchivos() {
+        Nodo<Archivo> actual = archivos.getHead();
+        int size = archivos.size();
+        String[] nombres = new String[size];
+
+        int i = 0;
+        while (actual != null) {
+            nombres[i] = actual.getData().getNombre();
+            actual = actual.getNext();
+            i++;
+        }
+
+        return nombres;
+    }
+    
+    private Archivo buscarArchivoPorNombre(String nombre) {
+        Nodo<Archivo> actual = archivos.getHead();
+        while (actual != null) {
+            if (actual.getData().getNombre().equals(nombre)) {
+                return actual.getData();
+            }
+            actual = actual.getNext();
+        }
+        return null;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -239,7 +309,7 @@ public class Menu extends javax.swing.JFrame {
     }//GEN-LAST:event_btnCrearArchivoActionPerformed
 
     private void btnModificarArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarArchivoActionPerformed
-        // TODO add your handling code here:
+        mostrarDialogoModificarArchivo();
     }//GEN-LAST:event_btnModificarArchivoActionPerformed
 
     /**
