@@ -82,4 +82,22 @@ public class Lista<T> {
             actual = actual.getNext(); 
         }
     }
+    
+    public boolean delete(T dato) {
+        if (head == null) return false;  
+        if (head.getData().equals(dato)) {
+            head = head.getNext(); 
+            return true;
+        }
+
+        Nodo<T> actual = head;
+        while (actual.getNext() != null) {
+            if (actual.getNext().getData().equals(dato)) {
+                actual.setNext(actual.getNext().getNext()); 
+                return true;
+            }
+            actual = actual.getNext();
+        }
+        return false; 
+    }
 }

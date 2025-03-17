@@ -32,6 +32,14 @@ public class Archivo {
             actual = actual.getNext(); 
         }
     }
+    
+    public void liberarBloques() {
+        Nodo<Bloque> actual = bloques.getHead();  
+        while (actual != null) {
+            actual.getData().setOcupado(false);  
+            actual = actual.getNext();  
+        }
+    }
 
     public String getNombre() {
         return nombre;

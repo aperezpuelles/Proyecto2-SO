@@ -13,6 +13,7 @@ import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 import proyecto2.so.Archivo;
 import proyecto2.so.Bloque;
 import proyecto2.so.Lista;
@@ -24,6 +25,7 @@ import proyecto2.so.SD;
  * @author Ignacio
  */
 public class Menu extends javax.swing.JFrame {
+    private DefaultTableModel tablaArchivos;
     private SD sd;
     private PanelDisco panelDisco;
     private Lista<Archivo> archivos;
@@ -35,6 +37,7 @@ public class Menu extends javax.swing.JFrame {
         initComponents();
         iniciarSimulacion();
         cargarDesdeJSON();
+        configurarTablas();
     }
 
     private void iniciarSimulacion() {
@@ -46,6 +49,25 @@ public class Menu extends javax.swing.JFrame {
         panelBloques.add(panelDisco);
         panelBloques.revalidate();
         panelBloques.repaint();
+    }
+    
+    private void configurarTablas() {
+        tablaArchivos = new DefaultTableModel(new String[]{"Nombre", "Bloque Inicial", "Longitud", "Color"}, 0);
+        tblArchivos.setModel(tablaArchivos);
+        actualizarTablas();
+    }
+    
+    private void actualizarTablas() {
+        tablaArchivos.setRowCount(0);
+        if (archivos.getHead() == null){
+            return;
+        }
+        Nodo<Archivo> actual = archivos.getHead();
+        while (actual != null){
+            Archivo archivo = actual.getData();
+            tablaArchivos.addRow(new Object[]{archivo.getNombre(), archivo.getPrimerBloque().getNumero(), archivo.getBloquesAsignados(), obtenerNombreColor(archivo.getColor())});
+            actual = actual.getNext();
+        }
     }
     
     private void mostrarDialogoCrearArchivo() {
@@ -73,6 +95,7 @@ public class Menu extends javax.swing.JFrame {
 
             sd.asignarBloques(nuevoArchivo);
             panelDisco.actualizarVista();
+            actualizarTablas();
             guardarEnJSON();
 
             JOptionPane.showMessageDialog(this, "Archivo creado:\nNombre: " + nombre + "\nTamaño: " + tamano + " bloques\nColor: " + obtenerNombreColor(color));
@@ -116,11 +139,43 @@ public class Menu extends javax.swing.JFrame {
             }
 
             archivoAModificar.setNombre(nuevoNombre);
-            System.out.println(archivos.getHead().getData().getNombre()); 
+            System.out.println(archivos.getHead().getData().getNombre());
+            actualizarTablas();
             guardarEnJSON(); 
 
             JOptionPane.showMessageDialog(this, "Archivo modificado con éxito.");
         }
+    }
+    
+    private void borrarDialogoModificarArchivo() {
+        if (archivos.getHead() == null) { 
+            JOptionPane.showMessageDialog(this, "No hay archivos creados.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String[] nombresArchivos = obtenerListaNombresArchivos();
+        String seleccionado = (String) JOptionPane.showInputDialog(
+                this,
+                "Selecciona un archivo para borrar:",
+                "Borrar Archivo",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                nombresArchivos,
+                nombresArchivos[0]
+        );
+
+        if (seleccionado == null) return;
+
+        Archivo archivoABorrar = buscarArchivoPorNombre(seleccionado);
+        if (archivoABorrar== null) {
+            JOptionPane.showMessageDialog(this, "No se encontró el archivo.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        archivoABorrar.liberarBloques();
+        archivos.delete(archivoABorrar);
+        actualizarTablas();
+        panelDisco.actualizarVista();
+        guardarEnJSON();
     }
     
     private void guardarEnJSON() {
@@ -267,6 +322,9 @@ public class Menu extends javax.swing.JFrame {
         panelBloques = new javax.swing.JPanel();
         btnCrearArchivo = new javax.swing.JButton();
         btnModificarArchivo = new javax.swing.JButton();
+        btnBorrarArchivo = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblArchivos = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(800, 500));
@@ -301,6 +359,29 @@ public class Menu extends javax.swing.JFrame {
         });
         getContentPane().add(btnModificarArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 230, -1, -1));
 
+        btnBorrarArchivo.setText("Borrar Archivo");
+        btnBorrarArchivo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBorrarArchivoActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnBorrarArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 230, -1, -1));
+
+        tblArchivos.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(tblArchivos);
+
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 100, -1, 90));
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -311,6 +392,10 @@ public class Menu extends javax.swing.JFrame {
     private void btnModificarArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarArchivoActionPerformed
         mostrarDialogoModificarArchivo();
     }//GEN-LAST:event_btnModificarArchivoActionPerformed
+
+    private void btnBorrarArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBorrarArchivoActionPerformed
+        borrarDialogoModificarArchivo();
+    }//GEN-LAST:event_btnBorrarArchivoActionPerformed
 
     /**
      * @param args the command line arguments
@@ -348,8 +433,11 @@ public class Menu extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnBorrarArchivo;
     private javax.swing.JButton btnCrearArchivo;
     private javax.swing.JButton btnModificarArchivo;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPanel panelBloques;
+    private javax.swing.JTable tblArchivos;
     // End of variables declaration//GEN-END:variables
 }
