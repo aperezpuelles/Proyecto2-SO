@@ -18,6 +18,7 @@ import proyecto2.so.TablaHash;
 public class CrearArchivoDialog extends JDialog{
     private JTextField txtNombre;
     private JTextField txtTamano;
+    private JComboBox<String> comboDirectorios;
     private JComboBox<String> comboColor;
     private boolean aceptado = false;
     private String nombreArchivo;
@@ -33,10 +34,10 @@ public class CrearArchivoDialog extends JDialog{
         tablaColores.put("Morado", new Color(128, 0, 128)); 
     }
 
-    public CrearArchivoDialog(JFrame parent) {
+    public CrearArchivoDialog(JFrame parent, String[] directoriosDisponibles) {
         super(parent, "Crear Archivo", true);
-        setSize(300, 200);
-        setLayout(new GridLayout(4, 2));
+        setSize(400, 300);
+        setLayout(new GridLayout(5, 2));
 
         add(new JLabel("Nombre:"));
         txtNombre = new JTextField();
@@ -50,6 +51,10 @@ public class CrearArchivoDialog extends JDialog{
         String[] colores = {"Rojo", "Verde", "Azul", "Amarillo", "Naranja", "Morado"};
         comboColor = new JComboBox<>(colores);
         add(comboColor);
+        
+        add(new JLabel("Ubicación:"));
+        comboDirectorios = new JComboBox<>(directoriosDisponibles);
+        add(comboDirectorios);
 
         JButton btnAceptar = new JButton("Aceptar");
         JButton btnCancelar = new JButton("Cancelar");
@@ -105,4 +110,7 @@ public class CrearArchivoDialog extends JDialog{
         return aceptado;
     }
     
+    public String getDirectorioSeleccionado() {
+        return (String) comboDirectorios.getSelectedItem();
+    }    
 }

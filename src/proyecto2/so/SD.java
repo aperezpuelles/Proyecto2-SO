@@ -33,6 +33,7 @@ public class SD {
         Lista bloquess = archivo.getBloques();
 
         Nodo<Bloque> actual = bloques.getHead();
+        int bloquesAsignados = 0;
         while (actual != null && tamano > 0) {
             Bloque bloque = actual.getData();
 
@@ -48,12 +49,14 @@ public class SD {
                     ));
                 }
                 bloque.setOcupado(true);
-                tamano--; 
+                tamano--;
+                bloquesAsignados++;
             }
             actual = actual.getNext();
         }
         archivo.setBloques(bloquess);
         archivo.setPrimerBloque((Bloque) bloquess.getHead().getData());
+        bloquesrestantes -= bloquesAsignados;
         archivo.printBloques();
         System.out.println(archivo.getPrimerBloque().getNumero());
     }
