@@ -96,5 +96,7 @@ public class SD {
         this.bloques = bloques;
     }
     
-    
+    public void aumentarBloquesRestantes(int cantidad) {
+        this.bloquesrestantes += cantidad;
+    }    
 }

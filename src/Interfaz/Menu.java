@@ -191,8 +191,20 @@ public class Menu extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "No se encontró el archivo.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        
+        Nodo<Bloque> actual = archivoABorrar.getBloques().getHead();
+        int bloquesLiberados = 0;
 
-        archivoABorrar.liberarBloques();
+        while (actual != null) {
+            if (actual.getData().isOcupado()) {
+                actual.getData().setOcupado(false);
+                bloquesLiberados++;
+            }
+            actual = actual.getNext();
+        }
+
+        archivoABorrar.getBloques().clear(); 
+        sd.aumentarBloquesRestantes(bloquesLiberados);
 
         Directorio dirPadre = buscarDirectorioQueContieneArchivo(raizSD, archivoABorrar);
         if (dirPadre != null) {
@@ -236,7 +248,6 @@ public class Menu extends javax.swing.JFrame {
         JSONObject jsonDir = new JSONObject();
         jsonDir.put("nombre", dir.getNombre());
 
-        // 📌 Convertir subdirectorios
         JSONArray jsonSubdirectorios = new JSONArray();
         Nodo<Directorio> actualDir = dir.getSubdirectorios().getHead();
         while (actualDir != null) {
@@ -245,7 +256,6 @@ public class Menu extends javax.swing.JFrame {
         }
         jsonDir.put("subdirectorios", jsonSubdirectorios);
 
-        // 📌 Convertir archivos (ahora con bloques y primer bloque)
         JSONArray jsonArchivos = new JSONArray();
         Nodo<Archivo> actualArchivo = dir.getArchivos().getHead();
         while (actualArchivo != null) {
@@ -255,7 +265,6 @@ public class Menu extends javax.swing.JFrame {
             jsonArchivo.put("bloquesAsignados", archivo.getBloquesAsignados());
             jsonArchivo.put("color", obtenerNombreColor(archivo.getColor()));
 
-            // 📌 Guardar la lista de bloques
             JSONArray jsonBloques = new JSONArray();
             Nodo<Bloque> actualBloque = archivo.getBloques().getHead();
             while (actualBloque != null) {
@@ -264,7 +273,6 @@ public class Menu extends javax.swing.JFrame {
             }
             jsonArchivo.put("bloques", jsonBloques);
 
-            // 📌 Guardar el primer bloque
             if (archivo.getPrimerBloque() != null) {
                 jsonArchivo.put("primerBloque", archivo.getPrimerBloque().getNumero());
             } else {
@@ -283,7 +291,7 @@ public class Menu extends javax.swing.JFrame {
         JSONObject jsonRaiz = convertirDirectorioAJson(raizSD);
 
         try (FileWriter file = new FileWriter("directorios.json")) {
-            file.write(jsonRaiz.toString(4)); // ✅ Indentado para mejor lectura
+            file.write(jsonRaiz.toString(4));
             file.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -292,9 +300,9 @@ public class Menu extends javax.swing.JFrame {
     
     private void cargarEstructuraJson() {
         File archivoJson = new File("directorios.json");
-        if (!archivoJson.exists()) return; // 📌 Si no hay archivo, no hacemos nada
+        if (!archivoJson.exists()) return; 
 
-        archivos = new Lista<>(); // 📌 Limpiar lista antes de llenarla
+        archivos = new Lista<>();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(archivoJson))) {
             StringBuilder jsonStr = new StringBuilder();
@@ -306,7 +314,7 @@ public class Menu extends javax.swing.JFrame {
             JSONObject jsonRaiz = new JSONObject(jsonStr.toString());
             raizSD = convertirJsonADirectorio(jsonRaiz, null);
             panelDisco.actualizarVista();
-            actualizarJTree(); // 📌 Refrescar el árbol con los datos cargados
+            actualizarJTree(); 
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -315,13 +323,11 @@ public class Menu extends javax.swing.JFrame {
     private Directorio convertirJsonADirectorio(JSONObject jsonDir, Directorio padre) {
         Directorio dir = new Directorio(jsonDir.getString("nombre"), padre);
 
-        // 📌 Cargar subdirectorios recursivamente
         JSONArray jsonSubdirectorios = jsonDir.getJSONArray("subdirectorios");
         for (int i = 0; i < jsonSubdirectorios.length(); i++) {
             dir.agregarSubdirectorio(convertirJsonADirectorio(jsonSubdirectorios.getJSONObject(i), dir));
         }
 
-        // 📌 Cargar archivos dentro del directorio
         JSONArray jsonArchivos = jsonDir.getJSONArray("archivos");
         for (int i = 0; i < jsonArchivos.length(); i++) {
             JSONObject jsonArchivo = jsonArchivos.getJSONObject(i);
@@ -331,7 +337,6 @@ public class Menu extends javax.swing.JFrame {
 
             Archivo archivo = new Archivo(nombre, tamano, color);
 
-            // 📌 Restaurar los bloques ocupados
             JSONArray jsonBloques = jsonArchivo.getJSONArray("bloques");
             for (int j = 0; j < jsonBloques.length(); j++) {
                 int numBloque = jsonBloques.getInt(j);
@@ -341,14 +346,13 @@ public class Menu extends javax.swing.JFrame {
                 bloque.setColor(color);
             }
 
-            // 📌 Restaurar el primer bloque si existe
             int primerBloqueNum = jsonArchivo.getInt("primerBloque");
             if (primerBloqueNum != -1) {
                 archivo.setPrimerBloque(sd.obtenerBloquePorNumero(primerBloqueNum));
             }
 
             dir.agregarArchivo(archivo);
-            archivos.add(archivo); // 📌 Agregar el archivo a la lista global en `Menu`
+            archivos.add(archivo);
         }
 
         return dir;
@@ -407,30 +411,29 @@ public class Menu extends javax.swing.JFrame {
     
     private Lista<String> obtenerListaDirectorios(Directorio raiz, String ruta) {
         Lista<String> lista = new Lista<>();
-        lista.add(ruta); // 📌 Agrega el directorio actual
+        lista.add(ruta);
 
         Nodo<Directorio> actual = raiz.getSubdirectorios().getHead();
         while (actual != null) {
             Lista<String> subdirectorios = obtenerListaDirectorios(actual.getData(), ruta + "/" + actual.getData().getNombre());
-            concatenarListas(lista, subdirectorios); // 📌 Concatenar subdirectorios en la lista
+            concatenarListas(lista, subdirectorios); 
             actual = actual.getNext();
         }
 
         return lista;
     }
 
-    // 📌 Método para concatenar dos listas enlazadas
     private void concatenarListas(Lista<String> listaPrincipal, Lista<String> listaAgregar) {
         Nodo<String> actual = listaAgregar.getHead();
         while (actual != null) {
-            listaPrincipal.add(actual.getData()); // 📌 Agrega cada elemento de la segunda lista a la primera
+            listaPrincipal.add(actual.getData()); 
             actual = actual.getNext();
         }
     }
 
-    // 📌 Convertir `Lista<String>` en `String[]` (para usarlo en JComboBox)
+
     private String[] convertirListaAArray(Lista<String> lista) {
-        int size = lista.size(); // 📌 Suponiendo que tienes un método `size()` en `Lista<T>`
+        int size = lista.size(); 
         String[] array = new String[size];
 
         Nodo<String> actual = lista.getHead();
@@ -444,23 +447,23 @@ public class Menu extends javax.swing.JFrame {
     }
     
     private Directorio buscarDirectorioPorRuta(Directorio raiz, String ruta) {
-        String[] partes = ruta.split("/"); // 📌 Separar la ruta en partes (Ej: ["SD", "Andres"])
+        String[] partes = ruta.split("/"); 
         Directorio actual = raiz;
 
-        for (int i = 1; i < partes.length; i++) { // 📌 Comenzamos en 1 porque `partes[0]` siempre es "SD"
+        for (int i = 1; i < partes.length; i++) { 
             Nodo<Directorio> nodo = actual.getSubdirectorios().getHead();
             boolean encontrado = false;
 
             while (nodo != null) {
                 if (nodo.getData().getNombre().equals(partes[i])) {
-                    actual = nodo.getData(); // 📌 Avanzamos al siguiente subdirectorio
+                    actual = nodo.getData();
                     encontrado = true;
                     break;
                 }
                 nodo = nodo.getNext();
             }
 
-            if (!encontrado) return null; // 📌 Si no encuentra el directorio, retorna null
+            if (!encontrado) return null; 
         }
 
         return actual;
@@ -494,12 +497,11 @@ public class Menu extends javax.swing.JFrame {
         Nodo<Archivo> actualArchivo = raiz.getArchivos().getHead();
         while (actualArchivo != null) {
             if (actualArchivo.getData().equals(archivo)) {
-                return raiz; // 📌 Se encontró el archivo en este directorio
+                return raiz;
             }
             actualArchivo = actualArchivo.getNext();
         }
 
-        // 📌 Buscar en subdirectorios
         Nodo<Directorio> actualDir = raiz.getSubdirectorios().getHead();
         while (actualDir != null) {
             Directorio encontrado = buscarDirectorioQueContieneArchivo(actualDir.getData(), archivo);
@@ -509,7 +511,7 @@ public class Menu extends javax.swing.JFrame {
             actualDir = actualDir.getNext();
         }
 
-        return null; // 📌 Si no se encontró el archivo en ningún directorio
+        return null; 
     }
     /**
      * This method is called from within the constructor to initialize the form.

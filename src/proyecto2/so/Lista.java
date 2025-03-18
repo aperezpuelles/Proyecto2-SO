@@ -100,4 +100,9 @@ public class Lista<T> {
         }
         return false; 
     }
+    
+    public void clear() {
+        head = null;
+        size = 0; 
+    }
 }
