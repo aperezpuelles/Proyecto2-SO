@@ -18,6 +18,7 @@ import proyecto2.so.TablaHash;
 public class CrearArchivoDialog extends JDialog{
     private JTextField txtNombre;
     private JTextField txtTamano;
+    private JComboBox<String> comboDirectorios;
     private JComboBox<String> comboColor;
     private boolean aceptado = false;
     private String nombreArchivo;
@@ -29,14 +30,14 @@ public class CrearArchivoDialog extends JDialog{
         tablaColores.put("Verde", Color.GREEN);
         tablaColores.put("Azul", Color.BLUE);
         tablaColores.put("Amarillo", Color.YELLOW);
-        tablaColores.put("Naranja", new Color(255, 165, 0)); // Naranja
-        tablaColores.put("Morado", new Color(128, 0, 128)); // Morado
+        tablaColores.put("Naranja", new Color(255, 165, 0));
+        tablaColores.put("Morado", new Color(128, 0, 128)); 
     }
 
-    public CrearArchivoDialog(JFrame parent) {
+    public CrearArchivoDialog(JFrame parent, String[] directoriosDisponibles) {
         super(parent, "Crear Archivo", true);
-        setSize(300, 200);
-        setLayout(new GridLayout(4, 2));
+        setSize(400, 300);
+        setLayout(new GridLayout(5, 2));
 
         add(new JLabel("Nombre:"));
         txtNombre = new JTextField();
@@ -50,6 +51,10 @@ public class CrearArchivoDialog extends JDialog{
         String[] colores = {"Rojo", "Verde", "Azul", "Amarillo", "Naranja", "Morado"};
         comboColor = new JComboBox<>(colores);
         add(comboColor);
+        
+        add(new JLabel("Ubicación:"));
+        comboDirectorios = new JComboBox<>(directoriosDisponibles);
+        add(comboDirectorios);
 
         JButton btnAceptar = new JButton("Aceptar");
         JButton btnCancelar = new JButton("Cancelar");
@@ -64,7 +69,7 @@ public class CrearArchivoDialog extends JDialog{
                     tamanoArchivo = -1; 
                 }
                 String colorSeleccionado = (String) comboColor.getSelectedItem();
-                colorArchivo = tablaColores.get(colorSeleccionado); // Obtener Color desde la tabla hash
+                colorArchivo = tablaColores.get(colorSeleccionado);
 
                 if (nombreArchivo.isEmpty() || tamanoArchivo <= 0) {
                     JOptionPane.showMessageDialog(CrearArchivoDialog.this, "Datos inválidos. Intenta de nuevo.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -105,4 +110,7 @@ public class CrearArchivoDialog extends JDialog{
         return aceptado;
     }
     
+    public String getDirectorioSeleccionado() {
+        return (String) comboDirectorios.getSelectedItem();
+    }    
 }
