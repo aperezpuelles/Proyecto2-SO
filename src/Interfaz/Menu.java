@@ -22,6 +22,7 @@ import proyecto2.so.Directorio;
 import proyecto2.so.Lista;
 import proyecto2.so.Nodo;
 import proyecto2.so.SD;
+import proyecto2.so.Usuario;
 
 /**
  *
@@ -34,6 +35,8 @@ public class Menu extends javax.swing.JFrame {
     private Lista<Archivo> archivos;
     private Directorio raizSD;
     private DefaultTreeModel modeloArbol;
+    private Usuario user;
+    private FrameAccesoDenegado denegado;
 
     /**
      * Creates new form Menu
@@ -54,7 +57,8 @@ public class Menu extends javax.swing.JFrame {
         DefaultMutableTreeNode nodoRaiz = new DefaultMutableTreeNode("SD");
         modeloArbol = new DefaultTreeModel(nodoRaiz);
         arbolDirectorio.setModel(modeloArbol);
-
+        user = new Usuario(false);
+        
         panelBloques.setLayout(new java.awt.BorderLayout());
         panelBloques.add(panelDisco);
         panelBloques.revalidate();
@@ -540,9 +544,10 @@ public class Menu extends javax.swing.JFrame {
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         jToggleButton1 = new javax.swing.JToggleButton();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jTextPane1 = new javax.swing.JTextPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(1094, 642));
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         javax.swing.GroupLayout panelBloquesLayout = new javax.swing.GroupLayout(panelBloques);
@@ -628,7 +633,7 @@ public class Menu extends javax.swing.JFrame {
         getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(750, 240, -1, -1));
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
-        jLabel6.setText("Auditoría:");
+        jLabel6.setText("Tabla de Asignación de Archivos:");
         getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 80, -1, -1));
 
         jLabel7.setText("Desactivado: Modo Usuario");
@@ -646,30 +651,57 @@ public class Menu extends javax.swing.JFrame {
         });
         getContentPane().add(jToggleButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(820, 140, 200, 50));
 
+        jScrollPane4.setViewportView(jTextPane1);
+
+        getContentPane().add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 590, 1050, 150));
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCrearArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearArchivoActionPerformed
-        mostrarDialogoCrearArchivo();
+
+        if (user.isAdmin()){
+            mostrarDialogoCrearArchivo();
+        }else{
+            JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnCrearArchivoActionPerformed
 
     private void btnModificarArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarArchivoActionPerformed
-        mostrarDialogoModificarArchivo();
+        
+        if (user.isAdmin()){
+            mostrarDialogoModificarArchivo();
+        }else{
+            JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnModificarArchivoActionPerformed
 
     private void btnBorrarArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBorrarArchivoActionPerformed
-        borrarDialogoModificarArchivo();
+        
+        if (user.isAdmin()){
+            borrarDialogoModificarArchivo();
+        }else{
+            JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnBorrarArchivoActionPerformed
 
     private void btnCrearDirectorioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearDirectorioActionPerformed
-        mostrarDialogoCrearDirectorio();
+        
+        if (user.isAdmin()){
+            mostrarDialogoCrearDirectorio();
+        }else{
+            JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        
     }//GEN-LAST:event_btnCrearDirectorioActionPerformed
 
     private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
         if (jToggleButton1.getText() == "Usuario"){
             jToggleButton1.setText("Administrador");
+            user.setAdmin(true);
         } else{
             jToggleButton1.setText("Usuario");
+            user.setAdmin(false);
         }
     }//GEN-LAST:event_jToggleButton1ActionPerformed
 
@@ -724,6 +756,8 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JTextPane jTextPane1;
     private javax.swing.JToggleButton jToggleButton1;
     private javax.swing.JPanel panelBloques;
     private javax.swing.JTable tblArchivos;

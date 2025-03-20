@@ -16,9 +16,6 @@ import proyecto2.so.TablaHash;
  * @author Ignacio
  */
 public class FrameAccesoDenegado extends JDialog{
-    private JTextField txtNombre;
-    private JTextField txtTamano;
-    private JComboBox<String> comboColor;
     private boolean aceptado = false;
     
     private static final TablaHash<String, Color> tablaColores = new TablaHash<>();
