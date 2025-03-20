@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.IOException;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -25,6 +26,7 @@ import proyecto2.so.SD;
 import proyecto2.so.Usuario;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import org.json.JSONTokener;
 
 /**
  *
@@ -49,6 +51,7 @@ public class Menu extends javax.swing.JFrame {
         iniciarSimulacion();
         cargarEstructuraJson();
         configurarTablas();
+        cargarAuditoriaJSON();
     }
 
     private void iniciarSimulacion() {
@@ -134,8 +137,9 @@ public class Menu extends javax.swing.JFrame {
             panelDisco.actualizarVista();
             actualizarTablas();
             actualizarJTree();
-            guardarEstructuraJson(); 
+            guardarEstructuraJson();
             actualizarAuditoria(dialog.getNusuario(), "Creación de Archivo");
+            guardarAuditoriaJSON();
             
             JOptionPane.showMessageDialog(this, "Archivo creado en " + directorioDestino + ":\nNombre: " + nombre + "\nTamaño: " + tamano + " bloques\nColor: " + obtenerNombreColor(color));
         }
@@ -183,6 +187,7 @@ public class Menu extends javax.swing.JFrame {
             guardarEstructuraJson();
             
             actualizarAuditoria(dialog.getNusuario(), "Modificación de Archivo");
+            guardarAuditoriaJSON();
             JOptionPane.showMessageDialog(this, "Archivo modificado con éxito.");
         }
     }
@@ -237,9 +242,10 @@ public class Menu extends javax.swing.JFrame {
         actualizarTablas();
         panelDisco.actualizarVista();
         actualizarJTree();
-        guardarEstructuraJson(); 
+        guardarEstructuraJson();
 
         actualizarAuditoria(nuser, "Eliminación de Archivo");
+        guardarAuditoriaJSON();
         JOptionPane.showMessageDialog(this, "Archivo eliminado con éxito.");
     }
     
@@ -261,6 +267,7 @@ public class Menu extends javax.swing.JFrame {
                 actualizarJTree();
                 guardarEstructuraJson();
                 actualizarAuditoria(dialog.getNusuario(), "Creación de Directorio");
+                guardarAuditoriaJSON();
             } else {
                 JOptionPane.showMessageDialog(this, "Error: No se encontró el directorio padre.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -379,6 +386,44 @@ public class Menu extends javax.swing.JFrame {
         }
 
         return dir;
+    }
+    
+    private void guardarAuditoriaJSON() {
+        JSONArray jsonArray = new JSONArray();
+
+        for (int i = 0; i < tablaAuditoria.getRowCount(); i++) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("Nombre de Usuario", tablaAuditoria.getValueAt(i, 0));
+            jsonObject.put("Nombre de Operación", tablaAuditoria.getValueAt(i, 1));
+            jsonObject.put("Fecha", tablaAuditoria.getValueAt(i, 2));
+            jsonArray.put(jsonObject);
+        }
+
+        try (FileWriter file = new FileWriter("audit_data.json")) {
+            file.write(jsonArray.toString(4)); //
+            file.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al guardar los datos en JSON", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void cargarAuditoriaJSON() {
+        try (FileReader reader = new FileReader("audit_data.json")) {
+            JSONTokener tokener = new JSONTokener(reader);
+            JSONArray jsonArray = new JSONArray(tokener);
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                String username = jsonObject.getString("Nombre de Usuario");
+                String operationName = jsonObject.getString("Nombre de Operación");
+                String date = jsonObject.getString("Fecha");
+                tablaAuditoria.addRow(new Object[]{username, operationName, date});
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al cargar los datos desde JSON", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     private String obtenerNombreColor(Color color) {
