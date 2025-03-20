@@ -1,13 +1,5 @@
 {
     "archivos": [],
-    "subdirectorios": [{
-        "archivos": [],
-        "subdirectorios": [{
-            "archivos": [],
-            "subdirectorios": [],
-            "nombre": "aaaa"
-        }],
-        "nombre": "aaaa"
-    }],
+    "subdirectorios": [],
     "nombre": "SD"
 }

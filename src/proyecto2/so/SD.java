@@ -28,19 +28,18 @@ public class SD {
     }
     
     public void asignarBloques(Archivo archivo) {
-        double tamano = archivo.getBloquesAsignados();
+        int tamano = (int) Math.ceil(archivo.getBloquesAsignados());
         Color color = archivo.getColor();
         Lista bloquess = archivo.getBloques();
 
         Nodo<Bloque> actual = bloques.getHead();
         int bloquesAsignados = 0;
-        while (actual != null && tamano > 0) {
+        while (actual != null && tamano > bloquesAsignados) {
             Bloque bloque = actual.getData();
 
             if (!bloque.isOcupado()) {
-                if (tamano >= 1) {
+                if (bloquesAsignados <= tamano - 1) {
                     bloque.setColor(color);
-                    bloquess.addLast(bloque);
                 } else {
                     bloque.setColor(new Color(
                         (color.getRed() + 255) / 2,
@@ -49,7 +48,7 @@ public class SD {
                     ));
                 }
                 bloque.setOcupado(true);
-                tamano--;
+                bloquess.addLast(bloque);
                 bloquesAsignados++;
             }
             actual = actual.getNext();

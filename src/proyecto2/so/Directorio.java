@@ -65,4 +65,8 @@ public class Directorio {
     public void eliminarArchivo(Archivo archivo) {
         this.archivos.delete(archivo);
     }
+    
+    public void eliminarSubdirectorio(Directorio dir) {
+        this.subdirectorios.delete(dir);
+    }
 }
