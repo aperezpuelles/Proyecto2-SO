@@ -2,7 +2,23 @@
     "archivos": [],
     "subdirectorios": [{
         "archivos": [],
-        "subdirectorios": [],
+        "subdirectorios": [
+            {
+                "archivos": [],
+                "subdirectorios": [],
+                "nombre": "si"
+            },
+            {
+                "archivos": [],
+                "subdirectorios": [],
+                "nombre": "a"
+            },
+            {
+                "archivos": [],
+                "subdirectorios": [],
+                "nombre": "s"
+            }
+        ],
         "nombre": "w"
     }],
     "nombre": "SD"

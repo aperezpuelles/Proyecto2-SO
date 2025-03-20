@@ -16,6 +16,8 @@ import proyecto2.so.TablaHash;
  * @author Ignacio
  */
 public class CrearArchivoDialog extends JDialog{
+    private String nusuario;
+    private JTextField Username;
     private JTextField txtNombre;
     private JTextField txtTamano;
     private JComboBox<String> comboDirectorios;
@@ -37,8 +39,12 @@ public class CrearArchivoDialog extends JDialog{
     public CrearArchivoDialog(JFrame parent, String[] directoriosDisponibles) {
         super(parent, "Crear Archivo", true);
         setSize(400, 300);
-        setLayout(new GridLayout(5, 2));
+        setLayout(new GridLayout(6, 2));
 
+        add(new JLabel("Nombre de Usuario:"));
+        Username = new JTextField();
+        add(Username);
+        
         add(new JLabel("Nombre:"));
         txtNombre = new JTextField();
         add(txtNombre);
@@ -63,6 +69,7 @@ public class CrearArchivoDialog extends JDialog{
             @Override
             public void actionPerformed(ActionEvent e) {
                 nombreArchivo = txtNombre.getText();
+                setNusuario(Username.getText());
                 try {
                     tamanoArchivo = Double.parseDouble(txtTamano.getText());
                 } catch (NumberFormatException ex) {
@@ -113,4 +120,14 @@ public class CrearArchivoDialog extends JDialog{
     public String getDirectorioSeleccionado() {
         return (String) comboDirectorios.getSelectedItem();
     }    
+
+    public String getNusuario() {
+        return nusuario;
+    }
+
+    public void setNusuario(String nusuario) {
+        this.nusuario = nusuario;
+    }
+    
+    
 }
