@@ -672,6 +672,8 @@ public class Menu extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jTabbedPane2 = new javax.swing.JTabbedPane();
+        jTabbedPane3 = new javax.swing.JTabbedPane();
         panelBloques = new javax.swing.JPanel();
         btnCrearArchivo = new javax.swing.JButton();
         btnModificarArchivo = new javax.swing.JButton();
@@ -684,6 +686,8 @@ public class Menu extends javax.swing.JFrame {
         btnCrearDirectorio = new javax.swing.JButton();
         btnBorrarDirectorio = new javax.swing.JButton();
         btnModificarDirectorio = new javax.swing.JButton();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jTabbedPane4 = new javax.swing.JTabbedPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(800, 500));
@@ -770,6 +774,8 @@ public class Menu extends javax.swing.JFrame {
             }
         });
         getContentPane().add(btnModificarDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(580, 110, -1, -1));
+        getContentPane().add(jTabbedPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+        getContentPane().add(jTabbedPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -844,6 +850,10 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTabbedPane jTabbedPane2;
+    private javax.swing.JTabbedPane jTabbedPane3;
+    private javax.swing.JTabbedPane jTabbedPane4;
     private javax.swing.JPanel panelBloques;
     private javax.swing.JTable tblArchivos;
     // End of variables declaration//GEN-END:variables
