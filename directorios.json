@@ -1,25 +1,5 @@
 {
     "archivos": [],
-    "subdirectorios": [{
-        "archivos": [],
-        "subdirectorios": [
-            {
-                "archivos": [],
-                "subdirectorios": [],
-                "nombre": "s"
-            },
-            {
-                "archivos": [],
-                "subdirectorios": [],
-                "nombre": "a"
-            },
-            {
-                "archivos": [],
-                "subdirectorios": [],
-                "nombre": "si"
-            }
-        ],
-        "nombre": "w"
-    }],
+    "subdirectorios": [],
     "nombre": "SD"
 }

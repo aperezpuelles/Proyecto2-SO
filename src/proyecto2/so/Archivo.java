@@ -32,6 +32,25 @@ public class Archivo {
             actual = actual.getNext(); 
         }
     }
+    
+    public void liberarBloques(SD sd) {
+        if (bloques == null || bloques.getHead() == null) {
+            return;
+        }
+        Nodo<Bloque> actual = bloques.getHead();
+        int bloquesLiberados = 0;
+
+        while (actual != null) {
+            Bloque bloque = actual.getData();
+            if (bloque.isOcupado()) {
+                bloque.setOcupado(false);
+                bloquesLiberados++;
+            }
+            actual = actual.getNext();
+        }
+        bloques.clear();
+        sd.aumentarBloquesRestantes(bloquesLiberados);
+    }
 
     public String getNombre() {
         return nombre;

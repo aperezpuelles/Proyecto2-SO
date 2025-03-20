@@ -26,7 +26,10 @@ import proyecto2.so.SD;
 import proyecto2.so.Usuario;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import javax.swing.tree.TreeNode;
 import org.json.JSONTokener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  *
@@ -40,8 +43,8 @@ public class Menu extends javax.swing.JFrame {
     private Lista<Archivo> archivos;
     private Directorio raizSD;
     private DefaultTreeModel modeloArbol;
+    private DefaultMutableTreeNode nodoRaiz;
     private Usuario user;
-    private FrameAccesoDenegado denegado;
 
     /**
      * Creates new form Menu
@@ -60,7 +63,7 @@ public class Menu extends javax.swing.JFrame {
         panelDisco = new PanelDisco(sd);
         
         raizSD = new Directorio("SD", null);
-        DefaultMutableTreeNode nodoRaiz = new DefaultMutableTreeNode("SD");
+        nodoRaiz = new DefaultMutableTreeNode("SD");
         modeloArbol = new DefaultTreeModel(nodoRaiz);
         arbolDirectorio.setModel(modeloArbol);
         user = new Usuario("Admin", false);
@@ -198,6 +201,10 @@ public class Menu extends javax.swing.JFrame {
             return;
         }
         
+        String nuser = "";
+        nuser = JOptionPane.showInputDialog("Nombre de Usuario: ");
+        if (nuser == null) return;
+        
         String[] nombresArchivos = obtenerListaNombresArchivos();
         String seleccionado = (String) JOptionPane.showInputDialog(
                 this,
@@ -235,8 +242,9 @@ public class Menu extends javax.swing.JFrame {
         if (dirPadre != null) {
             dirPadre.eliminarArchivo(archivoABorrar);
         }
-        String nuser = "";
-        nuser = JOptionPane.showInputDialog("Nombre de Usuario: ");
+        
+        
+        
         archivos.delete(archivoABorrar);
 
         actualizarTablas();
@@ -271,6 +279,102 @@ public class Menu extends javax.swing.JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "Error: No se encontró el directorio padre.", "Error", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+    
+    private void mostrarDialogoBorrarDirectorio() {
+        if (raizSD.getSubdirectorios().getHead() == null) { 
+            JOptionPane.showMessageDialog(this, "No hay directorios creados.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        String nuser = "";
+        nuser = JOptionPane.showInputDialog("Nombre de Usuario: ");
+        if (nuser == null) return;
+
+        Lista<String> listaDirectorios = obtenerListaDirectorios(raizSD, "SD");
+        String[] directoriosDisponibles = convertirListaAArray(listaDirectorios);
+        String seleccionado = (String) JOptionPane.showInputDialog(
+                this,
+                "Selecciona un directorio para borrar:",
+                "Borrar Directorio",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                directoriosDisponibles,
+                directoriosDisponibles[0]
+        );
+
+        if (seleccionado == null) return;
+
+        Directorio directorioABorrar = buscarDirectorioPorRuta(raizSD, seleccionado);
+        if (directorioABorrar == null) {
+            JOptionPane.showMessageDialog(this, "No se encontró el directorio.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        liberarBloquesDeArchivos(directorioABorrar);
+
+        Directorio dirPadre = buscarDirectorioPadre(raizSD, directorioABorrar);
+        if (dirPadre != null) {
+            dirPadre.eliminarSubdirectorio(directorioABorrar);
+        }
+
+        actualizarTablas();
+        panelDisco.actualizarVista();
+        actualizarJTree();
+        guardarEstructuraJson(); 
+
+        actualizarAuditoria(nuser, "Eliminación de Directorio");
+        guardarAuditoriaJSON();
+        JOptionPane.showMessageDialog(this, "Directorio eliminado con éxito.");
+    }
+    
+    private void mostrarDialogoModificarDirectorio() {
+        if (raizSD.getSubdirectorios().getHead() == null) { 
+            JOptionPane.showMessageDialog(this, "No hay directorios creados.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Lista<String> listaDirectorios = obtenerListaDirectorios(raizSD, "SD");
+        String[] directoriosDisponibles = convertirListaAArray(listaDirectorios);
+        String seleccionado = (String) JOptionPane.showInputDialog(
+                this,
+                "Selecciona un directorio para modificar:",
+                "Modificar Directorio",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                directoriosDisponibles,
+                directoriosDisponibles[0]
+        );
+
+        if (seleccionado == null) return;
+
+        Directorio directorioAModificar = buscarDirectorioPorRuta(raizSD, seleccionado);
+        if (directorioAModificar == null) {
+            JOptionPane.showMessageDialog(this, "No se encontró el directorio.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+
+        ModificarDirectorioDialog dialog = new ModificarDirectorioDialog(this, directorioAModificar.getNombre());
+        dialog.setVisible(true);
+
+        if (dialog.isAceptado()) {
+            String nuevoNombre = dialog.getNombreDirectorio();
+
+            if (nuevoNombre.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Datos inválidos. Intenta de nuevo.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            directorioAModificar.setNombre(nuevoNombre);
+            actualizarTablas();
+            actualizarJTree();
+            guardarEstructuraJson();
+
+            actualizarAuditoria(dialog.getNusuario(), "Modificación de Archivo");
+            guardarAuditoriaJSON();
+            JOptionPane.showMessageDialog(this, "Directorio modificado con éxito.");
         }
     }
     
@@ -561,6 +665,41 @@ public class Menu extends javax.swing.JFrame {
         }
     }
     
+    private void liberarBloquesDeArchivos(Directorio dir) {
+        Nodo<Archivo> actualArchivo = dir.getArchivos().getHead();
+        while (actualArchivo != null) {
+            Archivo archivo = actualArchivo.getData();
+            archivo.liberarBloques(sd);
+            archivos.delete(archivo); 
+            actualArchivo = actualArchivo.getNext();
+        }
+
+        Nodo<Directorio> actualDir = dir.getSubdirectorios().getHead();
+        while (actualDir != null) {
+            liberarBloquesDeArchivos(actualDir.getData());
+            actualDir = actualDir.getNext();
+        }
+    }
+    
+    private Directorio buscarDirectorioPadre(Directorio raiz, Directorio hijo) {
+        Nodo<Directorio> actual = raiz.getSubdirectorios().getHead();
+
+        while (actual != null) {
+            if (actual.getData().equals(hijo)) {
+                return raiz; 
+            }
+
+            Directorio resultado = buscarDirectorioPadre(actual.getData(), hijo);
+            if (resultado != null) {
+                return resultado;
+            }
+
+            actual = actual.getNext();
+        }
+
+        return null;
+    }
+    
     private Directorio buscarDirectorioQueContieneArchivo(Directorio raiz, Archivo archivo) {
         Nodo<Archivo> actualArchivo = raiz.getArchivos().getHead();
         while (actualArchivo != null) {
@@ -613,6 +752,8 @@ public class Menu extends javax.swing.JFrame {
         jScrollPane7 = new javax.swing.JScrollPane();
         tblAuditoria = new javax.swing.JTable();
         jLabel5 = new javax.swing.JLabel();
+        btnBorrarDirectorio = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -629,7 +770,6 @@ public class Menu extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(1099, 800));
-        setPreferredSize(new java.awt.Dimension(1099, 800));
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         javax.swing.GroupLayout panelBloquesLayout = new javax.swing.GroupLayout(panelBloques);
@@ -696,7 +836,7 @@ public class Menu extends javax.swing.JFrame {
                 btnCrearDirectorioActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 280, -1, -1));
+        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 280, -1, -1));
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 2, 24)); // NOI18N
         jLabel1.setText("Simulador Virtual de Sistema de Archivos ");
@@ -752,6 +892,22 @@ public class Menu extends javax.swing.JFrame {
         jLabel5.setText("Cambio de Modo:");
         getContentPane().add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 80, -1, -1));
 
+        btnBorrarDirectorio.setText("Borrar Directorio");
+        btnBorrarDirectorio.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBorrarDirectorioActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnBorrarDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 280, -1, -1));
+
+        jButton1.setText("Modificar Directorio");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 280, -1, -1));
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -788,9 +944,7 @@ public class Menu extends javax.swing.JFrame {
             mostrarDialogoCrearDirectorio();
         }else{
             JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        
-        
+        }   
     }//GEN-LAST:event_btnCrearDirectorioActionPerformed
 
     private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
@@ -802,6 +956,25 @@ public class Menu extends javax.swing.JFrame {
             user.setAdmin(false);
         }
     }//GEN-LAST:event_jToggleButton1ActionPerformed
+
+    private void btnBorrarDirectorioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBorrarDirectorioActionPerformed
+         
+        if (user.isAdmin()){
+            mostrarDialogoBorrarDirectorio();
+        }else{
+            JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
+        }   
+    }//GEN-LAST:event_btnBorrarDirectorioActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+             
+        if (user.isAdmin()){
+            mostrarDialogoModificarDirectorio();
+        }else{
+            JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
+        }   
+                  
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -841,9 +1014,11 @@ public class Menu extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTree arbolDirectorio;
     private javax.swing.JButton btnBorrarArchivo;
+    private javax.swing.JButton btnBorrarDirectorio;
     private javax.swing.JButton btnCrearArchivo;
     private javax.swing.JButton btnCrearDirectorio;
     private javax.swing.JButton btnModificarArchivo;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

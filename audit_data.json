@@ -1,3 +1,37 @@
 [
-
+    {
+        "Nombre de Operación": "Modificación de Archivo",
+        "Fecha": "2025-03-20 12:42:12",
+        "Nombre de Usuario": "te"
+    },
+    {
+        "Nombre de Operación": "Modificación de Archivo",
+        "Fecha": "2025-03-20 12:42:45",
+        "Nombre de Usuario": ""
+    },
+    {
+        "Nombre de Operación": "Eliminación de Directorio",
+        "Fecha": "2025-03-20 12:44:04",
+        "Nombre de Usuario": "d"
+    },
+    {
+        "Nombre de Operación": "Eliminación de Directorio",
+        "Fecha": "2025-03-20 12:44:34",
+        "Nombre de Usuario": ""
+    },
+    {
+        "Nombre de Operación": "Creación de Archivo",
+        "Fecha": "2025-03-20 12:45:19",
+        "Nombre de Usuario": "s"
+    },
+    {
+        "Nombre de Operación": "Eliminación de Archivo",
+        "Fecha": "2025-03-20 12:45:27",
+        "Nombre de Usuario": "w"
+    },
+    {
+        "Nombre de Operación": "Eliminación de Directorio",
+        "Fecha": "2025-03-20 12:45:39",
+        "Nombre de Usuario": "r"
+    }
 ]
