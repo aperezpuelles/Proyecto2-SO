@@ -20,6 +20,8 @@ import javax.swing.JTextField;
  * @author Ignacio
  */
 public class ModificarDirectorioDialog extends JDialog {
+    private String nusuario;
+    private JTextField Username;
     private JTextField txtNombre;
     private boolean aceptado = false;
     private String nombreDirectorio;
@@ -28,6 +30,10 @@ public class ModificarDirectorioDialog extends JDialog {
         super(parent, "Modificar Directorio", true);
         setSize(300, 200);
         setLayout(new GridLayout(3, 2));
+        
+        add(new JLabel("Nombre de Usuario:"));
+        Username = new JTextField();
+        add(Username);
 
         add(new JLabel("Nuevo Nombre:"));
         txtNombre = new JTextField(nombreActual);
@@ -40,6 +46,7 @@ public class ModificarDirectorioDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 nombreDirectorio = txtNombre.getText();
+                setNusuario(Username.getText());
 
                 if (nombreDirectorio.isEmpty()) {
                     JOptionPane.showMessageDialog(ModificarDirectorioDialog.this, "El nombre no puede estar vacío.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -71,4 +78,18 @@ public class ModificarDirectorioDialog extends JDialog {
     public boolean isAceptado() {
         return aceptado;
     }
+
+    public JTextField getUsername() {
+        return Username;
+    }
+
+    public String getNusuario() {
+        return nusuario;
+    }
+
+    public void setNusuario(String nusuario) {
+        this.nusuario = nusuario;
+    }
+    
+    
 }

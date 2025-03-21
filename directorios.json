@@ -1,5 +1,21 @@
 {
     "archivos": [],
-    "subdirectorios": [],
+    "subdirectorios": [{
+        "archivos": [{
+            "color": "Rojo",
+            "bloques": [
+                0,
+                1,
+                2,
+                3,
+                4
+            ],
+            "primerBloque": 0,
+            "bloquesAsignados": 5,
+            "nombre": "r"
+        }],
+        "subdirectorios": [],
+        "nombre": "e"
+    }],
     "nombre": "SD"
 }

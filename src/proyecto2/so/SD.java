@@ -13,10 +13,10 @@ import java.awt.Color;
  */
 public class SD {
     private int bloquesmax;
-    private double bloquesrestantes;
+    private int bloquesrestantes;
     private Lista<Bloque> bloques;
 
-    public SD(int bloquesmax, double bloquesrestantes) {
+    public SD(int bloquesmax, int bloquesrestantes) {
         this.bloquesmax = bloquesmax;
         this.bloquesrestantes = bloquesrestantes;
         this.bloques = new Lista<>();
@@ -79,11 +79,11 @@ public class SD {
         this.bloquesmax = bloquesmax;
     }
 
-    public double getBloquesrestantes() {
+    public int getBloquesrestantes() {
         return bloquesrestantes;
     }
 
-    public void setBloquesrestantes(double bloquesrestantes) {
+    public void setBloquesrestantes(int bloquesrestantes) {
         this.bloquesrestantes = bloquesrestantes;
     }
 

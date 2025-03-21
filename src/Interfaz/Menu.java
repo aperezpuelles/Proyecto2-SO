@@ -8,12 +8,11 @@ package Interfaz;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.awt.Color;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.IOException;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -24,18 +23,30 @@ import proyecto2.so.Directorio;
 import proyecto2.so.Lista;
 import proyecto2.so.Nodo;
 import proyecto2.so.SD;
+import proyecto2.so.Usuario;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import javax.swing.tree.TreeNode;
+import org.json.JSONTokener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  *
  * @author Ignacio
  */
 public class Menu extends javax.swing.JFrame {
+    private DefaultTableModel tablaAuditoria;
     private DefaultTableModel tablaArchivos;
     private SD sd;
     private PanelDisco panelDisco;
     private Lista<Archivo> archivos;
     private Directorio raizSD;
     private DefaultTreeModel modeloArbol;
+    private DefaultMutableTreeNode nodoRaiz;
+    private Usuario user;
 
     /**
      * Creates new form Menu
@@ -45,6 +56,7 @@ public class Menu extends javax.swing.JFrame {
         iniciarSimulacion();
         cargarEstructuraJson();
         configurarTablas();
+        cargarAuditoriaJSON();
         
         arbolDirectorio.addMouseListener(new MouseAdapter() {
         @Override
@@ -71,10 +83,11 @@ public class Menu extends javax.swing.JFrame {
         panelDisco = new PanelDisco(sd);
         
         raizSD = new Directorio("SD", null);
-        DefaultMutableTreeNode nodoRaiz = new DefaultMutableTreeNode("SD");
+        nodoRaiz = new DefaultMutableTreeNode("SD");
         modeloArbol = new DefaultTreeModel(nodoRaiz);
         arbolDirectorio.setModel(modeloArbol);
-
+        user = new Usuario("Admin", false);
+        
         panelBloques.setLayout(new java.awt.BorderLayout());
         panelBloques.add(panelDisco);
         panelBloques.revalidate();
@@ -85,6 +98,9 @@ public class Menu extends javax.swing.JFrame {
         tablaArchivos = new DefaultTableModel(new String[]{"Nombre", "Bloque Inicial", "Longitud", "Color"}, 0);
         tblArchivos.setModel(tablaArchivos);
         actualizarTablas();
+        
+        tablaAuditoria = new DefaultTableModel(new String []{"Usuario", "Operacion", "Fecha y Hora"}, 0);
+        tblAuditoria.setModel(tablaAuditoria);
     }
     
     private void actualizarTablas() {
@@ -104,6 +120,14 @@ public class Menu extends javax.swing.JFrame {
         String mensaje = "Nombre: " + archivo.getNombre() + "\nTamaño: " + archivo.getBloquesAsignados();
 
         JOptionPane.showMessageDialog(this, mensaje, "Información del Archivo", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    private void actualizarAuditoria(String user, String operacion){
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedNow = now.format(formatter);
+        
+        tablaAuditoria.addRow(new Object[]{user, operacion, formattedNow});
     }
     
     private void mostrarDialogoCrearArchivo() {
@@ -142,11 +166,15 @@ public class Menu extends javax.swing.JFrame {
             panelDisco.actualizarVista();
             actualizarTablas();
             actualizarJTree();
-            guardarEstructuraJson(); 
+            guardarEstructuraJson();
+            actualizarAuditoria(dialog.getNusuario(), "Creación de Archivo");
+            guardarAuditoriaJSON();
             
             JOptionPane.showMessageDialog(this, "Archivo creado en " + directorioDestino + ":\nNombre: " + nombre + "\nTamaño: " + tamano + " bloques\nColor: " + obtenerNombreColor(color));
         }
     }
+    
+    
     
     private void mostrarDialogoModificarArchivo() {
         if (archivos.getHead() == null) { 
@@ -188,17 +216,23 @@ public class Menu extends javax.swing.JFrame {
             actualizarTablas();
             actualizarJTree();
             guardarEstructuraJson();
-
+            
+            actualizarAuditoria(dialog.getNusuario(), "Modificación de Archivo");
+            guardarAuditoriaJSON();
             JOptionPane.showMessageDialog(this, "Archivo modificado con éxito.");
         }
     }
     
-    private void mostrarDialogoBorrarArchivo() {
+    private void borrarDialogoModificarArchivo() {
         if (archivos.getHead() == null) { 
             JOptionPane.showMessageDialog(this, "No hay archivos creados.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
+        
+        String nuser = "";
+        nuser = JOptionPane.showInputDialog("Nombre de Usuario: ");
+        if (nuser == null) return;
+        
         String[] nombresArchivos = obtenerListaNombresArchivos();
         String seleccionado = (String) JOptionPane.showInputDialog(
                 this,
@@ -236,14 +270,16 @@ public class Menu extends javax.swing.JFrame {
         if (dirPadre != null) {
             dirPadre.eliminarArchivo(archivoABorrar);
         }
-
+        
         archivos.delete(archivoABorrar);
 
         actualizarTablas();
         panelDisco.actualizarVista();
         actualizarJTree();
-        guardarEstructuraJson(); 
+        guardarEstructuraJson();
 
+        actualizarAuditoria(nuser, "Eliminación de Archivo");
+        guardarAuditoriaJSON();
         JOptionPane.showMessageDialog(this, "Archivo eliminado con éxito.");
     }
     
@@ -264,6 +300,8 @@ public class Menu extends javax.swing.JFrame {
                 dirPadre.agregarSubdirectorio(nuevoDir);
                 actualizarJTree();
                 guardarEstructuraJson();
+                actualizarAuditoria(dialog.getNusuario(), "Creación de Directorio");
+                guardarAuditoriaJSON();
                 JOptionPane.showMessageDialog(this, "Directorio creado en " + dirPadre.getNombre() + "s\nNombre: " + nombre);
             } else {
                 JOptionPane.showMessageDialog(this, "Error: No se encontró el directorio padre.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -276,6 +314,10 @@ public class Menu extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "No hay directorios creados.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        
+        String nuser = "";
+        nuser = JOptionPane.showInputDialog("Nombre de Usuario: ");
+        if (nuser == null) return;
 
         Lista<String> listaDirectorios = obtenerListaDirectorios(raizSD, "SD");
         String[] directoriosDisponibles = convertirListaAArray(listaDirectorios);
@@ -309,6 +351,8 @@ public class Menu extends javax.swing.JFrame {
         actualizarJTree();
         guardarEstructuraJson(); 
 
+        actualizarAuditoria(nuser, "Eliminación de Directorio");
+        guardarAuditoriaJSON();
         JOptionPane.showMessageDialog(this, "Directorio eliminado con éxito.");
     }
     
@@ -337,6 +381,7 @@ public class Menu extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "No se encontró el directorio.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        
 
         ModificarDirectorioDialog dialog = new ModificarDirectorioDialog(this, directorioAModificar.getNombre());
         dialog.setVisible(true);
@@ -354,6 +399,8 @@ public class Menu extends javax.swing.JFrame {
             actualizarJTree();
             guardarEstructuraJson();
 
+            actualizarAuditoria(dialog.getNusuario(), "Modificación de Archivo");
+            guardarAuditoriaJSON();
             JOptionPane.showMessageDialog(this, "Directorio modificado con éxito.");
         }
     }
@@ -365,7 +412,7 @@ public class Menu extends javax.swing.JFrame {
         JSONArray jsonSubdirectorios = new JSONArray();
         Nodo<Directorio> actualDir = dir.getSubdirectorios().getHead();
         while (actualDir != null) {
-            jsonSubdirectorios.put(convertirDirectorioAJson(actualDir.getData())); 
+            jsonSubdirectorios.put(convertirDirectorioAJson(actualDir.getData())); // Recursión
             actualDir = actualDir.getNext();
         }
         jsonDir.put("subdirectorios", jsonSubdirectorios);
@@ -452,24 +499,65 @@ public class Menu extends javax.swing.JFrame {
             Archivo archivo = new Archivo(nombre, tamano, color);
 
             JSONArray jsonBloques = jsonArchivo.getJSONArray("bloques");
+            int bloquesAsignados = 0;
+            int bloquesrestantes = sd.getBloquesrestantes();
             for (int j = 0; j < jsonBloques.length(); j++) {
                 int numBloque = jsonBloques.getInt(j);
                 Bloque bloque = sd.obtenerBloquePorNumero(numBloque);
                 archivo.getBloques().add(bloque);
                 bloque.setOcupado(true);
                 bloque.setColor(color);
+                bloquesAsignados++;
             }
 
             int primerBloqueNum = jsonArchivo.getInt("primerBloque");
             if (primerBloqueNum != -1) {
                 archivo.setPrimerBloque(sd.obtenerBloquePorNumero(primerBloqueNum));
             }
-
+            sd.setBloquesrestantes(bloquesrestantes -= bloquesAsignados);
             dir.agregarArchivo(archivo);
             archivos.add(archivo);
         }
 
         return dir;
+    }
+    
+    private void guardarAuditoriaJSON() {
+        JSONArray jsonArray = new JSONArray();
+
+        for (int i = 0; i < tablaAuditoria.getRowCount(); i++) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("Nombre de Usuario", tablaAuditoria.getValueAt(i, 0));
+            jsonObject.put("Nombre de Operación", tablaAuditoria.getValueAt(i, 1));
+            jsonObject.put("Fecha", tablaAuditoria.getValueAt(i, 2));
+            jsonArray.put(jsonObject);
+        }
+
+        try (FileWriter file = new FileWriter("audit_data.json")) {
+            file.write(jsonArray.toString(4)); //
+            file.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al guardar los datos en JSON", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void cargarAuditoriaJSON() {
+        try (FileReader reader = new FileReader("audit_data.json")) {
+            JSONTokener tokener = new JSONTokener(reader);
+            JSONArray jsonArray = new JSONArray(tokener);
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                String username = jsonObject.getString("Nombre de Usuario");
+                String operationName = jsonObject.getString("Nombre de Operación");
+                String date = jsonObject.getString("Fecha");
+                tablaAuditoria.addRow(new Object[]{username, operationName, date});
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al cargar los datos desde JSON", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     private String obtenerNombreColor(Color color) {
@@ -607,27 +695,6 @@ public class Menu extends javax.swing.JFrame {
         }
     }
     
-    private Directorio buscarDirectorioQueContieneArchivo(Directorio raiz, Archivo archivo) {
-        Nodo<Archivo> actualArchivo = raiz.getArchivos().getHead();
-        while (actualArchivo != null) {
-            if (actualArchivo.getData().equals(archivo)) {
-                return raiz;
-            }
-            actualArchivo = actualArchivo.getNext();
-        }
-
-        Nodo<Directorio> actualDir = raiz.getSubdirectorios().getHead();
-        while (actualDir != null) {
-            Directorio encontrado = buscarDirectorioQueContieneArchivo(actualDir.getData(), archivo);
-            if (encontrado != null) {
-                return encontrado;
-            }
-            actualDir = actualDir.getNext();
-        }
-
-        return null; 
-    }
-    
     private void liberarBloquesDeArchivos(Directorio dir) {
         Nodo<Archivo> actualArchivo = dir.getArchivos().getHead();
         while (actualArchivo != null) {
@@ -662,7 +729,27 @@ public class Menu extends javax.swing.JFrame {
 
         return null;
     }
+    
+    private Directorio buscarDirectorioQueContieneArchivo(Directorio raiz, Archivo archivo) {
+        Nodo<Archivo> actualArchivo = raiz.getArchivos().getHead();
+        while (actualArchivo != null) {
+            if (actualArchivo.getData().equals(archivo)) {
+                return raiz;
+            }
+            actualArchivo = actualArchivo.getNext();
+        }
 
+        Nodo<Directorio> actualDir = raiz.getSubdirectorios().getHead();
+        while (actualDir != null) {
+            Directorio encontrado = buscarDirectorioQueContieneArchivo(actualDir.getData(), archivo);
+            if (encontrado != null) {
+                return encontrado;
+            }
+            actualDir = actualDir.getNext();
+        }
+
+        return null; 
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -672,6 +759,8 @@ public class Menu extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jScrollPane6 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
         panelBloques = new javax.swing.JPanel();
         btnCrearArchivo = new javax.swing.JButton();
         btnModificarArchivo = new javax.swing.JButton();
@@ -682,25 +771,49 @@ public class Menu extends javax.swing.JFrame {
         jScrollPane3 = new javax.swing.JScrollPane();
         arbolDirectorio = new javax.swing.JTree();
         btnCrearDirectorio = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        jToggleButton1 = new javax.swing.JToggleButton();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        tblAuditoria = new javax.swing.JTable();
+        jLabel5 = new javax.swing.JLabel();
         btnBorrarDirectorio = new javax.swing.JButton();
-        btnModificarDirectorio = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane6.setViewportView(jTable1);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(800, 500));
+        setMinimumSize(new java.awt.Dimension(1099, 800));
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         javax.swing.GroupLayout panelBloquesLayout = new javax.swing.GroupLayout(panelBloques);
         panelBloques.setLayout(panelBloquesLayout);
         panelBloquesLayout.setHorizontalGroup(
             panelBloquesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 340, Short.MAX_VALUE)
+            .addGap(0, 390, Short.MAX_VALUE)
         );
         panelBloquesLayout.setVerticalGroup(
             panelBloquesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 150, Short.MAX_VALUE)
         );
 
-        getContentPane().add(panelBloques, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 320, 340, 150));
+        getContentPane().add(panelBloques, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 330, 390, 150));
 
         btnCrearArchivo.setText("Crear Archivo");
         btnCrearArchivo.addActionListener(new java.awt.event.ActionListener() {
@@ -708,7 +821,7 @@ public class Menu extends javax.swing.JFrame {
                 btnCrearArchivoActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrearArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(520, 450, -1, -1));
+        getContentPane().add(btnCrearArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 280, -1, -1));
 
         btnModificarArchivo.setText("Modificar Archivo");
         btnModificarArchivo.addActionListener(new java.awt.event.ActionListener() {
@@ -716,7 +829,7 @@ public class Menu extends javax.swing.JFrame {
                 btnModificarArchivoActionPerformed(evt);
             }
         });
-        getContentPane().add(btnModificarArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(640, 450, -1, -1));
+        getContentPane().add(btnModificarArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(940, 280, -1, -1));
 
         btnBorrarArchivo.setText("Borrar Archivo");
         btnBorrarArchivo.addActionListener(new java.awt.event.ActionListener() {
@@ -724,7 +837,7 @@ public class Menu extends javax.swing.JFrame {
                 btnBorrarArchivoActionPerformed(evt);
             }
         });
-        getContentPane().add(btnBorrarArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(770, 450, -1, -1));
+        getContentPane().add(btnBorrarArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(770, 280, -1, -1));
 
         tblArchivos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -739,13 +852,13 @@ public class Menu extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(tblArchivos);
 
-        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 340, -1, 90));
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 120, -1, 90));
 
         jScrollPane3.setViewportView(arbolDirectorio);
 
         jScrollPane2.setViewportView(jScrollPane3);
 
-        getContentPane().add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 20, 480, 250));
+        getContentPane().add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 320, 480, 250));
 
         btnCrearDirectorio.setText("Crear Directorio");
         btnCrearDirectorio.addActionListener(new java.awt.event.ActionListener() {
@@ -753,7 +866,61 @@ public class Menu extends javax.swing.JFrame {
                 btnCrearDirectorioActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(580, 30, -1, -1));
+        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 280, -1, -1));
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 2, 24)); // NOI18N
+        jLabel1.setText("Simulador Virtual de Sistema de Archivos ");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 20, -1, -1));
+
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        jLabel2.setText("Auditoría:");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 590, -1, -1));
+
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        jLabel3.setText("Gestión de Directorios");
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 240, -1, -1));
+
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        jLabel4.setText("Gestión de Archivos");
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(750, 240, -1, -1));
+
+        jLabel6.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        jLabel6.setText("Tabla de Asignación de Archivos:");
+        getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 80, -1, -1));
+
+        jLabel7.setText("Desactivado: Modo Usuario");
+        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(570, 160, 180, 30));
+
+        jLabel8.setText("Activado: Modo Administrador");
+        getContentPane().add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(570, 140, 180, 30));
+
+        jToggleButton1.setText("Usuario");
+        jToggleButton1.setToolTipText("");
+        jToggleButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButton1ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jToggleButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(820, 140, 200, 50));
+
+        tblAuditoria.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null}
+            },
+            new String [] {
+                "Usuario", "Operación", "Hora de Ejecución"
+            }
+        ));
+        jScrollPane7.setViewportView(tblAuditoria);
+
+        getContentPane().add(jScrollPane7, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 630, 1040, 130));
+
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        jLabel5.setText("Cambio de Modo:");
+        getContentPane().add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 80, -1, -1));
 
         btnBorrarDirectorio.setText("Borrar Directorio");
         btnBorrarDirectorio.addActionListener(new java.awt.event.ActionListener() {
@@ -761,42 +928,83 @@ public class Menu extends javax.swing.JFrame {
                 btnBorrarDirectorioActionPerformed(evt);
             }
         });
-        getContentPane().add(btnBorrarDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(580, 70, 120, -1));
+        getContentPane().add(btnBorrarDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 280, -1, -1));
 
-        btnModificarDirectorio.setText("Modificar Directorio");
-        btnModificarDirectorio.addActionListener(new java.awt.event.ActionListener() {
+        jButton1.setText("Modificar Directorio");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnModificarDirectorioActionPerformed(evt);
+                jButton1ActionPerformed(evt);
             }
         });
-        getContentPane().add(btnModificarDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(580, 110, -1, -1));
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 280, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCrearArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearArchivoActionPerformed
-        mostrarDialogoCrearArchivo();
+
+        if (user.isAdmin()){
+            mostrarDialogoCrearArchivo();
+        }else{
+            JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnCrearArchivoActionPerformed
 
     private void btnModificarArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarArchivoActionPerformed
-        mostrarDialogoModificarArchivo();
+        
+        if (user.isAdmin()){
+            mostrarDialogoModificarArchivo();
+        }else{
+            JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnModificarArchivoActionPerformed
 
     private void btnBorrarArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBorrarArchivoActionPerformed
-        mostrarDialogoBorrarArchivo();
+        
+        if (user.isAdmin()){
+            borrarDialogoModificarArchivo();
+        }else{
+            JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnBorrarArchivoActionPerformed
 
     private void btnCrearDirectorioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearDirectorioActionPerformed
-        mostrarDialogoCrearDirectorio();
+        
+        if (user.isAdmin()){
+            mostrarDialogoCrearDirectorio();
+        }else{
+            JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
+        }   
     }//GEN-LAST:event_btnCrearDirectorioActionPerformed
 
+    private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
+        if (jToggleButton1.getText() == "Usuario"){
+            jToggleButton1.setText("Administrador");
+            user.setAdmin(true);
+        } else{
+            jToggleButton1.setText("Usuario");
+            user.setAdmin(false);
+        }
+    }//GEN-LAST:event_jToggleButton1ActionPerformed
+
     private void btnBorrarDirectorioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBorrarDirectorioActionPerformed
-        mostrarDialogoBorrarDirectorio();
+         
+        if (user.isAdmin()){
+            mostrarDialogoBorrarDirectorio();
+        }else{
+            JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
+        }   
     }//GEN-LAST:event_btnBorrarDirectorioActionPerformed
 
-    private void btnModificarDirectorioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarDirectorioActionPerformed
-        mostrarDialogoModificarDirectorio();
-    }//GEN-LAST:event_btnModificarDirectorioActionPerformed
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+             
+        if (user.isAdmin()){
+            mostrarDialogoModificarDirectorio();
+        }else{
+            JOptionPane.showMessageDialog(this, "Usted se encuentra en Modo Usuario. Sólo se permite lectura", "Error", JOptionPane.ERROR_MESSAGE);
+        }   
+                  
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -840,11 +1048,24 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JButton btnCrearArchivo;
     private javax.swing.JButton btnCrearDirectorio;
     private javax.swing.JButton btnModificarArchivo;
-    private javax.swing.JButton btnModificarDirectorio;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JScrollPane jScrollPane7;
+    private javax.swing.JTable jTable1;
+    private javax.swing.JToggleButton jToggleButton1;
     private javax.swing.JPanel panelBloques;
     private javax.swing.JTable tblArchivos;
+    private javax.swing.JTable tblAuditoria;
     // End of variables declaration//GEN-END:variables
 }

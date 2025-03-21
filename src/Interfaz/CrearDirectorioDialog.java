@@ -12,6 +12,8 @@ import java.awt.*;
  * @author Ignacio
  */
 public class CrearDirectorioDialog extends JDialog {
+    private String nusuario;
+    private JTextField Username;
     private JTextField txtNombre;
     private JComboBox<String> comboDirectorios;
     private boolean aceptado = false;
@@ -21,7 +23,11 @@ public class CrearDirectorioDialog extends JDialog {
     public CrearDirectorioDialog(JFrame parent, String[] directoriosDisponibles) {
         super(parent, "Crear Directorio", true);
         setSize(300, 200);
-        setLayout(new GridLayout(3, 2));
+        setLayout(new GridLayout(4, 2));
+        
+        add(new JLabel("Nombre de Usuario:"));
+        Username = new JTextField();
+        add(Username);
 
         add(new JLabel("Nombre del Directorio:"));
         txtNombre = new JTextField();
@@ -37,6 +43,7 @@ public class CrearDirectorioDialog extends JDialog {
         btnAceptar.addActionListener(e -> {
             nombreDirectorio = txtNombre.getText();
             directorioPadre = (String) comboDirectorios.getSelectedItem();
+            setNusuario(Username.getText());
 
             if (nombreDirectorio.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Ingrese un nombre válido.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -68,4 +75,14 @@ public class CrearDirectorioDialog extends JDialog {
     public boolean isAceptado() {
         return aceptado;
     }
+
+    public String getNusuario() {
+        return nusuario;
+    }
+
+    public void setNusuario(String nusuario) {
+        this.nusuario = nusuario;
+    }
+    
+    
 }
