@@ -117,7 +117,7 @@ public class Menu extends javax.swing.JFrame {
     }
     
     private void mostrarDialogoArchivo(Archivo archivo) {
-        String mensaje = "Nombre: " + archivo.getNombre() + "\nTamaño: " + archivo.getBloquesAsignados();
+        String mensaje = "Nombre: " + archivo.getNombre() + "\nTamaño: " + archivo.getBloquesAsignados() + " Bloques";
 
         JOptionPane.showMessageDialog(this, mensaje, "Información del Archivo", JOptionPane.INFORMATION_MESSAGE);
     }
@@ -399,7 +399,7 @@ public class Menu extends javax.swing.JFrame {
             actualizarJTree();
             guardarEstructuraJson();
 
-            actualizarAuditoria(dialog.getNusuario(), "Modificación de Archivo");
+            actualizarAuditoria(dialog.getNusuario(), "Modificación de Directorio");
             guardarAuditoriaJSON();
             JOptionPane.showMessageDialog(this, "Directorio modificado con éxito.");
         }
